@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import Burger from "../../components/Burger/Burger";
 import BuildControls from "../../components/Burger/BuildControls/BuildControls";
-
+import Modal from "../../components/UI/Modal/Modal";
+import OrderSummay from "../../components/Burger/OrderSummay/OrderSummary";
 const IGREDIENT_PRICES = {
   salad: 0.5,
   cheese: 0.4,
@@ -18,6 +19,20 @@ class BurgerBuilder extends Component {
       meat: 0,
     },
     totalPrice: 4,
+    purchasable: false,
+    purchasing: false,
+  };
+
+  updatePurchaseSate = (ingredients) => {
+    const sum = Object.keys(ingredients)
+      .map((igKey) => {
+        return ingredients[igKey]; //this will be the value, the numbers
+      })
+      .reduce((sum, el) => {
+        return sum + el;
+      }, 0);
+
+    this.setState({ purchasable: sum > 0 });
   };
 
   addIngredientHandler = (type) => {
@@ -34,6 +49,8 @@ class BurgerBuilder extends Component {
     const newPrice = oldPrice + priceAddition;
 
     this.setState({ totalPrice: newPrice, ingredients: updatedIngredients });
+
+    this.updatePurchaseSate(updatedIngredients);
   };
 
   removeIngredientHandler = (type) => {
@@ -53,6 +70,11 @@ class BurgerBuilder extends Component {
     const newPrice = oldPrice - priceDeduction;
 
     this.setState({ totalPrice: newPrice, ingredients: updatedIngredients });
+    this.updatePurchaseSate(updatedIngredients);
+  };
+
+  purchaseHandler = () => {
+    this.setState({ purchasing: true });
   };
 
   render() {
@@ -66,12 +88,17 @@ class BurgerBuilder extends Component {
 
     return (
       <React.Fragment>
+        <Modal show={this.state.purchasing}>
+          <OrderSummay ingredients={this.state.ingredients} />
+        </Modal>
         <Burger ingredients={this.state.ingredients} />
         <BuildControls
           ingredientAdded={this.addIngredientHandler}
           ingredientRemoved={this.removeIngredientHandler}
           disabled={disabledInfo}
           price={this.state.totalPrice}
+          purchasable={!this.state.purchasable}
+          ordered={this.purchaseHandler}
         />
       </React.Fragment>
     );
